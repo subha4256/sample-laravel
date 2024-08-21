@@ -1,4 +1,4 @@
-name: Deploy Laravel to EC2 using SSM
+name: Deploy Laravel to EC2
 
 on:
   push:
@@ -24,20 +24,17 @@ jobs:
 
     - name: Deploy Laravel Application
       run: |
-        aws ssm start-session \
-          --target "i-028a32175b8ed30c2" \
-          --document-name "AWS-StartSSHSession" \
-          --parameters "portNumber=22" \
-          --region us-east-1
-
-    - name: Run Deployment Commands via SSM
-      run: |
         aws ssm send-command \
           --instance-ids "i-028a32175b8ed30c2" \
           --document-name "AWS-RunShellScript" \
           --comment "Deploying Laravel application from GitHub" \
           --parameters commands="
             cd /var/www/html/testlaravel &&
+            git config --global user.name 'subha4256' &&
+            git config --global user.email 'subha4256@gmail.com' &&
+            git remote set-url origin https://${{ secrets.GIT_PAT }}@github.com/your-username/your-repo.git &&
+            git config --list &&
+            git remote -v &&
             git pull origin main &&
             composer install --optimize-autoloader --no-dev &&
             php artisan migrate --force &&
