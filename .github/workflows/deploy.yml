@@ -13,20 +13,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: |
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set default.region us-east-1
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.10.1
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: Deploy Laravel Application
+    - name: Deploy Laravel Application via SSH
       run: |
-        aws ssm send-command \
-          --instance-ids "i-028a32175b8ed30c2" \
-          --document-name "AWS-RunShellScript" \
-          --comment "Deploying Laravel application from GitHub" \
-          --parameters 'commands=["cd /var/www/html/testlaravel && git config --global user.name \"subha4256\" && git config --global user.email \"subha4256@gmail.com\" && git remote set-url origin https://${{ secrets.GIT_PAT }}@github.com/subha4256/sample-laravel.git && git config --list && git remote -v && git pull origin main && composer install --optimize-autoloader --no-dev && php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && sudo systemctl restart apache2"]' \
-          --output text
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd /var/www/html/testlaravel
+          git pull origin main
+          composer install --optimize-autoloader --no-dev
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          sudo systemctl restart apache2
+        EOF
