@@ -1,4 +1,4 @@
-name: Deploy Laravel to EC2
+name: Deploy Laravel to EC2 using SSM
 
 on:
   push:
@@ -23,6 +23,14 @@ jobs:
         aws configure set default.region us-east-1
 
     - name: Deploy Laravel Application
+      run: |
+        aws ssm start-session \
+          --target "i-028a32175b8ed30c2" \
+          --document-name "AWS-StartSSHSession" \
+          --parameters "portNumber=22" \
+          --region us-east-1
+
+    - name: Run Deployment Commands via SSM
       run: |
         aws ssm send-command \
           --instance-ids "i-028a32175b8ed30c2" \
