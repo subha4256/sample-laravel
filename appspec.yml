@@ -17,6 +17,6 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: /var/www/sample-laravel/deploy.sh
+    - location: deploy.sh
       timeout: 300
       runas: ubuntu
