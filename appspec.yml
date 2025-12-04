@@ -1,0 +1,22 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /var/www/sample-laravel
+    overwrite: yes
+
+permissions:
+  - object: /var/www/sample-laravel
+    owner: www-data
+    group: www-data
+    mode: 775
+    type:
+      - directory
+      - file
+
+hooks:
+  AfterInstall:
+    - location: deploy.sh
+      timeout: 300
+      runas: ubuntu
